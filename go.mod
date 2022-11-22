@@ -3,6 +3,7 @@ module github.com/snasphysicist/ferp/v2
 go 1.19
 
 require (
+	github.com/go-chi/chi/v5 v5.0.7
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
