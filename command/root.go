@@ -1,6 +1,7 @@
 package command
 
 import (
+	"github.com/snasphysicist/ferp/v2/pkg/configuration"
 	"github.com/snasphysicist/ferp/v2/pkg/log"
 	"github.com/spf13/cobra"
 )
@@ -15,6 +16,8 @@ func Execute() {
 	}
 	var path string
 	root.PersistentFlags().StringVar(&path, "configuration-file", "", "path to the proxy configuration file")
+	var c configuration.Configuration
+	cobra.OnInitialize(func() { loadConfiguration(&path, &c) })
 	_ = root.Execute()
 }
 
@@ -25,4 +28,14 @@ func initialiseLogging() func() {
 		panic(err)
 	}
 	return flush
+}
+
+// loadConfiguration loads the configuration from the passed path into the passed struct
+func loadConfiguration(path *string, c *configuration.Configuration) {
+	cl, err := configuration.Load(*path)
+	if err != nil {
+		log.Errorf("Failed to load configuration: %s", err)
+		panic(err)
+	}
+	*c = cl
 }
