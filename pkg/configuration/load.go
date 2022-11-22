@@ -1,10 +1,12 @@
 package configuration
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/snasphysicist/ferp/v2/pkg/functional"
 	"github.com/snasphysicist/ferp/v2/pkg/log"
 	"github.com/spf13/viper"
 )
@@ -19,6 +21,11 @@ func Load(path string) (Configuration, error) {
 	err = viper.Unmarshal(&c, func(c *mapstructure.DecoderConfig) { c.TagName = "config" })
 	if err != nil {
 		log.Errorf("Failed to deserialise configuration: %s", err)
+		return Configuration{}, err
+	}
+	err = validate(c)
+	if err != nil {
+		log.Errorf("The configuration is not valid: %s", err)
 		return Configuration{}, err
 	}
 	return c, nil
@@ -36,4 +43,17 @@ func readInConfiguration(path string) error {
 		log.Errorf("Failed to read in configuration: %s", err)
 	}
 	return err
+}
+
+// validate ensures that all options provided in the configuration are valid
+func validate(c Configuration) error {
+	errs := functional.Map(
+		functional.Filter([]error{validateAllMethods(c)},
+			func(e error) bool { return e != nil }),
+		func(e error) string { return e.Error() })
+	if len(errs) > 0 {
+		return fmt.Errorf("invalid configuration: %s", strings.Join(errs, ", "))
+
+	}
+	return nil
 }
