@@ -18,6 +18,7 @@ func Execute() {
 	root.PersistentFlags().StringVar(&path, "configuration-file", "", "path to the proxy configuration file")
 	var c configuration.Configuration
 	cobra.OnInitialize(func() { loadConfiguration(&path, &c) })
+	root.AddCommand(serveCommand(&c))
 	_ = root.Execute()
 }
 
