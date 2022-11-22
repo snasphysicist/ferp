@@ -1,6 +1,9 @@
 package command
 
 import (
+	"os"
+	"os/signal"
+
 	"github.com/snasphysicist/ferp/v2/pkg/configuration"
 	"github.com/spf13/cobra"
 )
@@ -16,4 +19,19 @@ func serveCommand(c *configuration.Configuration) *cobra.Command {
 }
 
 // Serve TODO implement
-func Serve(_ configuration.Configuration, _ chan struct{}) {}
+func Serve(_ configuration.Configuration, stop chan struct{}) {
+	shutdown := make(chan struct{})
+	go shutDownOnSignalOrStop(shutdown, stop)
+	<-shutdown
+}
+
+// shutDownOnSignal closes the shutdown channel if any OS signal or signal on stop is received
+func shutDownOnSignalOrStop(shutdown chan<- struct{}, stop <-chan struct{}) {
+	s := make(chan os.Signal, 1)
+	signal.Notify(s)
+	select {
+	case <-s:
+	case <-stop:
+	}
+	close(shutdown)
+}
