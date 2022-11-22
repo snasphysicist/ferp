@@ -1,6 +1,9 @@
 package configuration
 
 import (
+	"path/filepath"
+	"strings"
+
 	"github.com/mitchellh/mapstructure"
 	"github.com/snasphysicist/ferp/v2/pkg/log"
 	"github.com/spf13/viper"
@@ -23,6 +26,14 @@ func Load(path string) (Configuration, error) {
 
 // readInConfiguration configures viper to target the configuration file and attempts to read it in
 func readInConfiguration(path string) error {
-	// TODO: implement
-	return nil
+	directory := filepath.Dir(path)
+	viper.AddConfigPath(directory)
+	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	viper.SetConfigName(name)
+	log.Infof("Attempting to load configuration from directory %s, name %s", directory, name)
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Errorf("Failed to read in configuration: %s", err)
+	}
+	return err
 }
