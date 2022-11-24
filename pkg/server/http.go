@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/snasphysicist/ferp/v2/pkg/configuration"
+	"github.com/snasphysicist/ferp/v2/pkg/server/forward"
 	"github.com/snasphysicist/ferp/v2/pkg/server/redirect"
 )
 
@@ -13,6 +14,7 @@ import (
 func HTTP(c configuration.HTTP) *http.Server {
 	r := chi.NewRouter() // TODO: add logging middleware
 	redirect.Configure(r, c.Redirects)
+	forward.Configure(r, c.Incoming)
 	return &http.Server{Addr: fmt.Sprintf("%s:%d", host, c.Port), Handler: r}
 }
 
