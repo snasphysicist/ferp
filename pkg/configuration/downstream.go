@@ -16,7 +16,7 @@ func populateDownstreams(c Configuration) (Configuration, error) {
 	errs = functional.Filter(errs, func(e error) bool { return e != nil })
 	errStr := functional.Map(errs, func(e error) string { return e.Error() })
 	if len(errs) != 0 {
-		return Configuration{}, fmt.Errorf("%s", strings.Join(errStr, ", "))
+		return c, fmt.Errorf("%s", strings.Join(errStr, ", "))
 	}
 	return c, nil
 }
@@ -41,7 +41,7 @@ func findDownstreams(d []Downstream, is []Incoming) ([]Incoming, error) {
 		functional.Filter(errs, func(e error) bool { return e != nil }),
 		func(e error) string { return e.Error() })
 	if len(errs) > 0 {
-		return []Incoming{},
+		return is,
 			fmt.Errorf("invalid downstreams: %s", strings.Join(errStr, ", "))
 	}
 	return iswd, nil
