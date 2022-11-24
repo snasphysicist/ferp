@@ -9,16 +9,16 @@ import (
 
 // RouterFor finds an appropriate router to set up routes for the given method
 func RouterFor(method string) (MethodRouter, error) {
-	mr, ok := MethodRouters()[method]
+	mr, ok := methodRouters()[method]
 	if !ok {
 		return nil, fmt.Errorf("method '%s' is not supported", method)
 	}
 	return mr, nil
 }
 
-// MethodRouters lists all method types that are recognised by this application
+// methodRouters lists all method types that are recognised by this application
 // and the method routers for them
-func MethodRouters() map[string]MethodRouter {
+func methodRouters() map[string]MethodRouter {
 	return map[string]MethodRouter{
 		http.MethodConnect: connect{},
 		http.MethodDelete:  delete{},

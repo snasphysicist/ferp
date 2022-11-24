@@ -23,7 +23,7 @@ func Load(path string) (Configuration, error) {
 		log.Errorf("Failed to deserialise configuration: %s", err)
 		return Configuration{}, err
 	}
-	err = validate(c)
+	c, err = validate(c)
 	if err != nil {
 		log.Errorf("The configuration is not valid: %s", err)
 		return Configuration{}, err
@@ -46,16 +46,16 @@ func readInConfiguration(path string) error {
 }
 
 // validate ensures that all options provided in the configuration are valid
-func validate(c Configuration) error {
+func validate(c Configuration) (Configuration, error) {
 	c, dErr := populateDownstreams(c)
 	c, mrErr := populateMethodRouters(c)
 	errs := functional.Map(
-		functional.Filter([]error{validateAllMethods(c), dErr, mrErr},
+		functional.Filter([]error{dErr, mrErr},
 			func(e error) bool { return e != nil }),
 		func(e error) string { return e.Error() })
 	if len(errs) > 0 {
-		return fmt.Errorf("invalid configuration: %s", strings.Join(errs, ", "))
+		return c, fmt.Errorf("invalid configuration: %s", strings.Join(errs, ", "))
 
 	}
-	return nil
+	return c, nil
 }
