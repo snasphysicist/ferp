@@ -13,7 +13,9 @@ import (
 func populateMethodRouters(c Configuration) (Configuration, error) {
 	ii, iiErr := populateMethodRoutersForIncomings(c.HTTP.Incoming)
 	c.HTTP.Incoming = ii
-	errs := []error{iiErr}
+	ird, irdErr := populateMethodRoutersForRedirects(c.HTTP.Redirects)
+	c.HTTP.Redirects = ird
+	errs := []error{iiErr, irdErr}
 	errs = functional.Filter(errs, func(e error) bool { return e != nil })
 	errStr := functional.Map(errs, func(e error) string { return e.Error() })
 	if len(errs) > 0 {
@@ -45,6 +47,30 @@ func populateMethodRoutersForIncomings(is []Incoming) ([]Incoming, error) {
 		return is, fmt.Errorf("invalid methods: %s", strings.Join(errStr, ", "))
 	}
 	return iswr, nil
+}
+
+// populateMethodRoutersForRedirects populates the method routers fields in the provided
+// redirects, returning an error summarising which (if any) had invalid methods
+func populateMethodRoutersForRedirects(rds []Redirect) ([]Redirect, error) {
+	rdswr := make([]Redirect, 0)
+	errs := make([]error, 0)
+	for _, rd := range rds {
+		mrs, err := findMethodRouters(rd.Methods)
+		errs = append(errs, err)
+		rdswr = append(rdswr, Redirect{
+			From:          rd.From,
+			To:            rd.To,
+			Methods:       rd.Methods,
+			MethodRouters: mrs,
+		})
+		log.Infof("For %+v, method routers %+v", rd, mrs)
+	}
+	errs = functional.Filter(errs, func(e error) bool { return e != nil })
+	errStr := functional.Map(errs, func(e error) string { return e.Error() })
+	if len(errs) > 0 {
+		return rds, fmt.Errorf("invalid methods: %s", strings.Join(errStr, ", "))
+	}
+	return rdswr, nil
 }
 
 // findMethodRouters finds method routers for all provided methods,
