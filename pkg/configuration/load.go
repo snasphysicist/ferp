@@ -48,8 +48,9 @@ func readInConfiguration(path string) error {
 // validate ensures that all options provided in the configuration are valid
 func validate(c Configuration) error {
 	c, dErr := populateDownstreams(c)
+	c, mrErr := populateMethodRouters(c)
 	errs := functional.Map(
-		functional.Filter([]error{validateAllMethods(c), dErr},
+		functional.Filter([]error{validateAllMethods(c), dErr, mrErr},
 			func(e error) bool { return e != nil }),
 		func(e error) string { return e.Error() })
 	if len(errs) > 0 {

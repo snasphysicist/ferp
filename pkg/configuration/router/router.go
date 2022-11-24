@@ -1,10 +1,20 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
+
+// RouterFor finds an appropriate router to set up routes for the given method
+func RouterFor(method string) (MethodRouter, error) {
+	mr, ok := MethodRouters()[method]
+	if !ok {
+		return nil, fmt.Errorf("method '%s' is not supported", method)
+	}
+	return mr, nil
+}
 
 // MethodRouters lists all method types that are recognised by this application
 // and the method routers for them
