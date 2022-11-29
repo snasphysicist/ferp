@@ -4,7 +4,7 @@ import "github.com/snasphysicist/ferp/v2/pkg/configuration/router"
 
 // Configuration holds configuration for the entire application
 type Configuration struct {
-	Downstreams []Downstream `config:"downstreams"`
+	Downstreams []Downstream `config:"downstream"`
 	HTTP        HTTP         `config:"http"`
 	HTTPS       HTTPS        `config:"https"`
 }
