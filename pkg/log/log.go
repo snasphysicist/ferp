@@ -20,15 +20,15 @@ func Initialise() (func(), error) {
 
 // Errorf logs an error level message
 func Errorf(t string, args ...interface{}) {
-	logger.Errorf(t, args)
+	logger.Errorf(t, args...)
 }
 
 // Infof logs an information level message
 func Infof(t string, args ...interface{}) {
-	logger.Infof(t, args)
+	logger.Infof(t, args...)
 }
 
 // Debugf logs a debug level message
 func Debugf(t string, args ...interface{}) {
-	logger.Debugf(t, args)
+	logger.Debugf(t, args...)
 }
