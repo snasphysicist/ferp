@@ -1,0 +1,15 @@
+downstream:
+  - target: "test-1"
+    protocol: "http"
+    host: "127.0.0.1"
+    port: 34543
+    base: "/"
+    path-mapper:
+      type: forward-unchanged
+http:
+  port: 23443
+  incoming:
+    - path: "/test"
+      methods:
+        - "GET"
+      target: "test-1"
