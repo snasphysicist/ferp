@@ -23,6 +23,7 @@ func Load(path string) (Configuration, error) {
 		log.Errorf("Failed to deserialise configuration: %s", err)
 		return Configuration{}, err
 	}
+	log.Infof("Loaded and deserialised configuration: %#v", c)
 	c, err = validate(c)
 	if err != nil {
 		log.Errorf("The configuration is not valid: %s", err)
