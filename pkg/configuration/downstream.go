@@ -2,7 +2,6 @@ package configuration
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/snasphysicist/ferp/v2/pkg/functional"
 )
@@ -12,13 +11,8 @@ import (
 func populateDownstreams(c Configuration) (Configuration, error) {
 	isi, err := findDownstreams(c.Downstreams, c.HTTP.Incoming)
 	c.HTTP.Incoming = isi
-	errs := []error{err}
-	errs = functional.Filter(errs, func(e error) bool { return e != nil })
-	errStr := functional.Map(errs, func(e error) string { return e.Error() })
-	if len(errs) != 0 {
-		return c, fmt.Errorf("%s", strings.Join(errStr, ", "))
-	}
-	return c, nil
+	// TODO: HTTPS
+	return c, joinNonNilErrors([]error{err}, ", ", "%s")
 }
 
 // findDownstreams finds downstreams for all provided incomings, returning
@@ -37,14 +31,8 @@ func findDownstreams(d []Downstream, is []Incoming) ([]Incoming, error) {
 			Downstream:    d,
 		})
 	}
-	errStr := functional.Map(
-		functional.Filter(errs, func(e error) bool { return e != nil }),
-		func(e error) string { return e.Error() })
-	if len(errs) > 0 {
-		return is,
-			fmt.Errorf("invalid downstreams: %s", strings.Join(errStr, ", "))
-	}
-	return iswd, nil
+	err := joinNonNilErrors(errs, ", ", "invalid downstreams: %s")
+	return iswd, err
 }
 
 // findDownstream attempts to find the downstream in the configuration for the given incoming route

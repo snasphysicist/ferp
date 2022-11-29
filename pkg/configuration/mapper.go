@@ -2,9 +2,7 @@ package configuration
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/snasphysicist/ferp/v2/pkg/functional"
 	"github.com/snasphysicist/ferp/v2/pkg/mapper"
 )
 
@@ -20,13 +18,8 @@ func populatePathMappers(c Configuration) (Configuration, error) {
 		ds = append(ds, d)
 	}
 	c.Downstreams = ds
-	errs = functional.Filter(errs, func(e error) bool { return e != nil })
-	errStr := functional.Map(errs, func(e error) string { return e.Error() })
-	if len(errs) > 0 {
-		return c, fmt.Errorf(
-			"invalid mapper configuration: %s", strings.Join(errStr, ", "))
-	}
-	return c, nil
+	err := joinNonNilErrors(errs, ", ", "invalid mapper configuration: %s")
+	return c, err
 }
 
 // loadPathMapper attempts to find and instantiate a path mapper
@@ -42,8 +35,7 @@ func loadPathMapper(c map[string]string) (pathMapper, error) {
 		}
 		errs = append(errs, err)
 	}
-	errStr := functional.Map(errs, func(e error) string { return e.Error() })
-	return nil, fmt.Errorf(
-		"no mapper matching configuration %#v (failed to match: %s)",
-		c, strings.Join(errStr, ", "))
+	jErr := joinNonNilErrors(errs, ", ",
+		fmt.Sprintf("no mapper matching configuration %#v (failed to match: %s)", c, "%s"))
+	return nil, jErr
 }

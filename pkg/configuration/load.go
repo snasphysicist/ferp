@@ -51,13 +51,18 @@ func validate(c Configuration) (Configuration, error) {
 	c, pmErr := populatePathMappers(c)
 	c, dErr := populateDownstreams(c)
 	c, mrErr := populateMethodRouters(c)
-	errs := functional.Map(
-		functional.Filter([]error{pmErr, dErr, mrErr},
-			func(e error) bool { return e != nil }),
-		func(e error) string { return e.Error() })
-	if len(errs) > 0 {
-		return c, fmt.Errorf("invalid configuration: %s", strings.Join(errs, ", "))
+	err := joinNonNilErrors([]error{pmErr, dErr, mrErr}, ", ", "invalid configuration: %s")
+	return c, err
+}
 
+// joinNonNilErrors joins the messages of any errors in the input with the given joiner string
+// and inserts the result into the template (which should have one %s),
+// returning nil if all input errors are nil, else an error with the described message.
+func joinNonNilErrors(errs []error, joiner string, template string) error {
+	nonNil := functional.Filter(errs, func(e error) bool { return e != nil })
+	strs := functional.Map(nonNil, func(e error) string { return e.Error() })
+	if len(nonNil) == 0 {
+		return nil
 	}
-	return c, nil
+	return fmt.Errorf(template, strings.Join(strs, joiner))
 }

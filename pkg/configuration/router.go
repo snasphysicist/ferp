@@ -1,11 +1,7 @@
 package configuration
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/snasphysicist/ferp/v2/pkg/configuration/router"
-	"github.com/snasphysicist/ferp/v2/pkg/functional"
 	"github.com/snasphysicist/ferp/v2/pkg/log"
 )
 
@@ -15,13 +11,9 @@ func populateMethodRouters(c Configuration) (Configuration, error) {
 	c.HTTP.Incoming = ii
 	ird, irdErr := populateMethodRoutersForRedirects(c.HTTP.Redirects)
 	c.HTTP.Redirects = ird
-	errs := []error{iiErr, irdErr}
-	errs = functional.Filter(errs, func(e error) bool { return e != nil })
-	errStr := functional.Map(errs, func(e error) string { return e.Error() })
-	if len(errs) > 0 {
-		return c, fmt.Errorf("invalid methods: %s", strings.Join(errStr, ", "))
-	}
-	return c, nil
+	// TODO: HTTPS
+	err := joinNonNilErrors([]error{iiErr, irdErr}, ", ", "invalid methods: %s")
+	return c, err
 }
 
 // populateMethodRoutersForIncomings populates the method routers fields in the provided
@@ -41,12 +33,8 @@ func populateMethodRoutersForIncomings(is []Incoming) ([]Incoming, error) {
 		})
 		log.Infof("For %+v, method routers %+v", i, mrs)
 	}
-	errs = functional.Filter(errs, func(e error) bool { return e != nil })
-	errStr := functional.Map(errs, func(e error) string { return e.Error() })
-	if len(errs) > 0 {
-		return is, fmt.Errorf("invalid methods: %s", strings.Join(errStr, ", "))
-	}
-	return iswr, nil
+	err := joinNonNilErrors(errs, ", ", "invalid methods: %s")
+	return iswr, err
 }
 
 // populateMethodRoutersForRedirects populates the method routers fields in the provided
@@ -65,12 +53,8 @@ func populateMethodRoutersForRedirects(rds []Redirect) ([]Redirect, error) {
 		})
 		log.Infof("For %+v, method routers %+v", rd, mrs)
 	}
-	errs = functional.Filter(errs, func(e error) bool { return e != nil })
-	errStr := functional.Map(errs, func(e error) string { return e.Error() })
-	if len(errs) > 0 {
-		return rds, fmt.Errorf("invalid methods: %s", strings.Join(errStr, ", "))
-	}
-	return rdswr, nil
+	err := joinNonNilErrors(errs, ", ", "invalid methods: %s")
+	return rdswr, err
 }
 
 // findMethodRouters finds method routers for all provided methods,
@@ -83,11 +67,5 @@ func findMethodRouters(ms []string) ([]router.MethodRouter, error) {
 		rs = append(rs, r)
 		errs = append(errs, err)
 	}
-	errs = functional.Filter(errs, func(e error) bool { return e != nil })
-	errStr := functional.Map(errs, func(e error) string { return e.Error() })
-	if len(errs) != 0 {
-		return []router.MethodRouter{},
-			fmt.Errorf("%s", strings.Join(errStr, ", "))
-	}
-	return rs, nil
+	return rs, joinNonNilErrors(errs, ", ", "%s")
 }
