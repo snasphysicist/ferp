@@ -6,6 +6,13 @@ downstream:
     base: "/"
     path-mapper:
       type: forward-unchanged
+  - target: "test-2"
+    protocol: "http"
+    host: "127.0.0.1"
+    port: 35753
+    base: "/"
+    path-mapper:
+      type: forward-unchanged
 http:
   port: 23443
   incoming:
@@ -13,3 +20,7 @@ http:
       methods:
         - "GET"
       target: "test-1"
+    - path: "/other/test"
+      methods:
+        - "GET"
+      target: "test-2"
