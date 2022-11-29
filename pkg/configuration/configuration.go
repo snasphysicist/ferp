@@ -6,6 +6,7 @@ import "github.com/snasphysicist/ferp/v2/pkg/configuration/router"
 type Configuration struct {
 	Downstreams []Downstream `config:"downstreams"`
 	HTTP        HTTP         `config:"http"`
+	HTTPS       HTTPS        `config:"https"`
 }
 
 // Downstream represents a server that the proxy is providing access to
@@ -30,6 +31,15 @@ type pathMapper interface {
 type HTTP struct {
 	Port      uint16     `config:"port"`
 	Redirects []Redirect `config:"redirect"`
+	Incoming  []Incoming `config:"incoming"`
+}
+
+// HTTPS contains configuration for routes served by the proxy over HTTPS
+type HTTPS struct {
+	Port      uint16     `config:"port"`
+	CertFile  string     `config:"cert-file"`
+	KeyFile   string     `config:"key-file"`
+	Redirects []Redirect `config:"redirects"`
 	Incoming  []Incoming `config:"incoming"`
 }
 
