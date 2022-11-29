@@ -42,7 +42,7 @@ func readInConfiguration(path string) error {
 	if err != nil {
 		log.Errorf("Failed to read in configuration: %s", err)
 	}
-	return err
+	return nil
 }
 
 // validate ensures that all options provided in the configuration are valid
