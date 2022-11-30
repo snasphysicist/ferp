@@ -26,3 +26,24 @@ func TestDoesNotForwardToUnconfiguredPath(t *testing.T) {
 		},
 	})
 }
+
+func TestDoesNotForwardToUnconfiguredMethod(t *testing.T) {
+	content := "Reached the test route"
+	m := mock{t: t, port: mockPorts()[0], routes: []route{
+		{path: "/test", method: http.MethodGet, code: 200, content: content},
+	}}
+
+	defer startMocksAndProxy(t, []mock{m})()
+
+	sendRequestExpectResponse(t, requestResponse{
+		req: request{
+			method: http.MethodPut,
+			url:    "http://localhost:23443/prefixed/test",
+			body:   http.NoBody,
+		},
+		res: response{
+			code:    http.StatusMethodNotAllowed,
+			content: "",
+		},
+	})
+}
