@@ -13,6 +13,14 @@ downstream:
     base: "/"
     path-mapper:
       type: forward-unchanged
+  - target: "test-3"
+    protocol: "http"
+    host: "127.0.0.1"
+    port: 34543
+    base: "/"
+    path-mapper:
+      type: remove-prefix
+      prefix: "/prefixed"
 http:
   port: 23443
   incoming:
@@ -24,3 +32,7 @@ http:
       methods:
         - "GET"
       target: "test-2"
+    - path: "/prefixed/test"
+      methods:
+        - "POST"
+      target: "test-3"
