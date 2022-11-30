@@ -71,6 +71,7 @@ func doUntilResponse(r *http.Request, retries uint, backoff time.Duration) *http
 // and fails the test if the response does not have the given status code and content,
 // or if anything at all goes wrong in the request-response cycle.
 func sendRequestExpectResponse(t *testing.T, rr requestResponse) {
+	t.Helper()
 	req, err := http.NewRequest(rr.req.method, rr.req.url, rr.req.body)
 	if err != nil {
 		t.Errorf("Failed to construct request: %s", err)
