@@ -9,7 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/snasphysicist/ferp/v2/command"
+	"github.com/snasphysicist/ferp/v2/pkg/configuration"
 	"github.com/snasphysicist/ferp/v2/pkg/functional"
+	"github.com/snasphysicist/ferp/v2/pkg/log"
 )
 
 // mustFindFile searches recursively, starting from startIn and moving through its parents,
@@ -110,4 +113,30 @@ type request struct {
 type response struct {
 	code    int
 	content string
+}
+
+// startMocksAndProxy starts the provided mocks and the proxy server
+// using the test configuration, bundling all shutdown/cleanup into
+// the returned function, which should be deferred from the test.
+func startMocksAndProxy(t *testing.T, mocks []mock) func() {
+	_, _ = log.Initialise()
+	c, err := configuration.Load(mustFindFile("test.yaml", "."))
+	if err != nil {
+		t.Errorf("Failed to load configuration: %s", err)
+	}
+
+	stop := make(chan struct{})
+	shutdowns := make([]func(), 0)
+	shutdowns = append(shutdowns, func() { close(stop) })
+
+	for _, m := range mocks {
+		shutdowns = append(shutdowns, m.start())
+	}
+
+	go command.Serve(c, stop)
+	return func() {
+		for _, s := range shutdowns {
+			s()
+		}
+	}
 }
