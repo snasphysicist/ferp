@@ -50,6 +50,7 @@ func TestForwardsPathsToCorrespondingDownstreams(t *testing.T) {
 	shutdown = m2.start()
 	defer shutdown()
 
+	_, _ = log.Initialise()
 	c, err := configuration.Load(mustFindFile("test.yaml", "."))
 	if err != nil {
 		panic(err)
