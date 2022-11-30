@@ -29,21 +29,10 @@ func TestForwardsOnConfiguredExactRouteAndMethod(t *testing.T) {
 	defer close(stop)
 	go command.Serve(c, stop)
 
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:23443/test", http.NoBody)
-	if err != nil {
-		panic(err)
-	}
-	res := doUntilResponse(req, 11, time.Millisecond)
-	if res.StatusCode != http.StatusOK {
-		t.Errorf("Request failed with %d, but should have been forwarded", res.StatusCode)
-	}
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		panic(err)
-	}
-	if string(b) != content {
-		t.Errorf("Forwarded content %s != sent content %s", string(b), content)
-	}
+	sendRequestExpectResponse(t, requestResponse{
+		req: request{method: http.MethodGet, url: "http://localhost:23443/test", body: http.NoBody},
+		res: response{code: http.StatusOK, content: content},
+	})
 }
 
 func TestForwardsPathsToCorrespondingDownstreams(t *testing.T) {
@@ -70,35 +59,56 @@ func TestForwardsPathsToCorrespondingDownstreams(t *testing.T) {
 	defer close(stop)
 	go command.Serve(c, stop)
 
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:23443/test", http.NoBody)
+	sendRequestExpectResponse(t, requestResponse{
+		req: request{method: http.MethodGet, url: "http://localhost:23443/test", body: http.NoBody},
+		res: response{code: http.StatusOK, content: content1},
+	})
+	sendRequestExpectResponse(t, requestResponse{
+		req: request{method: http.MethodGet, url: "http://localhost:23443/other/test", body: http.NoBody},
+		res: response{code: http.StatusOK, content: content2},
+	})
+}
+
+// sendRequestExpectResponse sends a request with the given method, url and body
+// and fails the test if the response does not have the given status code and content,
+// or if anything at all goes wrong in the request-response cycle.
+func sendRequestExpectResponse(t *testing.T, rr requestResponse) {
+	req, err := http.NewRequest(rr.req.method, rr.req.url, rr.req.body)
 	if err != nil {
-		panic(err)
+		t.Errorf("Failed to construct request: %s", err)
+		return
 	}
 	res := doUntilResponse(req, 11, time.Millisecond)
-	if res.StatusCode != http.StatusOK {
-		t.Errorf("Request failed with %d, but should have been forwarded", res.StatusCode)
+	if res.StatusCode != rr.res.code {
+		t.Errorf("Request had status %d, expected %d", res.StatusCode, rr.res.code)
+		return
 	}
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
-		panic(err)
+		t.Errorf("Failed to read response body: %s", err)
+		return
 	}
-	if string(b) != content1 {
-		t.Errorf("Forwarded content %s != sent content %s", string(b), content1)
+	if string(b) != rr.res.content {
+		t.Errorf("Response content does not match expected: '%s' != '%s'",
+			string(b), rr.res.content)
 	}
+}
 
-	req2, err := http.NewRequest(http.MethodGet, "http://localhost:23443/other/test", http.NoBody)
-	if err != nil {
-		panic(err)
-	}
-	res2 := doUntilResponse(req2, 11, time.Millisecond)
-	if res2.StatusCode != http.StatusOK {
-		t.Errorf("Request failed with %d, but should have been forwarded", res2.StatusCode)
-	}
-	b, err = io.ReadAll(res2.Body)
-	if err != nil {
-		panic(err)
-	}
-	if string(b) != content2 {
-		t.Errorf("Forwarded content %s != sent content %s", string(b), content2)
-	}
+// requestResponse stores a request to be sent during a test and the response expected
+type requestResponse struct {
+	req request
+	res response
+}
+
+// request represents a request to be send during a test
+type request struct {
+	method string
+	url    string
+	body   io.ReadCloser
+}
+
+// response represents the expected state of a response to be returned during a test
+type response struct {
+	code    int
+	content string
 }
