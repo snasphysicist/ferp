@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -74,14 +73,8 @@ func (r Remapper) makeURL(incoming string) string {
 
 // sendInternal sends an error response when something goes wrong in the proxy itself
 func sendInternalErrorResponse(w http.ResponseWriter) {
-	b, err := json.Marshal(struct {
-		E string `json:"error"`
-	}{E: internalErrorMessage})
-	if err != nil {
-		b = []byte(internalErrorMessage)
-	}
 	w.WriteHeader(http.StatusInternalServerError)
-	_, err = w.Write(b)
+	_, err := w.Write([]byte(internalErrorMessage))
 	if err != nil {
 		log.Errorf("Failed to write error response body: %s", err)
 	}
@@ -116,4 +109,4 @@ func transferResponseHeaders(from *http.Response, to http.ResponseWriter) {
 }
 
 // internalErrorMessage is a standard non-implementation detail leaking error message
-const internalErrorMessage = "Something went wrong"
+const internalErrorMessage = "500: something went wrong"
