@@ -12,12 +12,13 @@ func TestDoesNotForwardToUnconfiguredPath(t *testing.T) {
 		{path: "/teest", method: http.MethodGet, rg: setResponse(200, content)},
 	}}
 
-	defer startMocksAndProxy(t, []mock{m})()
+	p, f := startMocksAndProxy(t, []mock{m})
+	defer f()
 
 	sendRequestExpectResponse(t, requestResponse{
 		req: request{
 			method: http.MethodGet,
-			url:    "http://localhost:23443/prefixed/teest",
+			url:    proxyURL(p, "prefixed/teest"),
 			body:   http.NoBody,
 		},
 		res: response{
@@ -33,12 +34,13 @@ func TestDoesNotForwardToUnconfiguredMethod(t *testing.T) {
 		{path: "/test", method: http.MethodGet, rg: setResponse(200, content)},
 	}}
 
-	defer startMocksAndProxy(t, []mock{m})()
+	p, f := startMocksAndProxy(t, []mock{m})
+	defer f()
 
 	sendRequestExpectResponse(t, requestResponse{
 		req: request{
 			method: http.MethodPut,
-			url:    "http://localhost:23443/prefixed/test",
+			url:    proxyURL(p, "prefixed/test"),
 			body:   http.NoBody,
 		},
 		res: response{

@@ -11,12 +11,13 @@ func TestForwardsWithPrefixRemovedWhenConfigured(t *testing.T) {
 		{path: "/test", method: http.MethodPost, rg: setResponse(200, content)},
 	}}
 
-	defer startMocksAndProxy(t, []mock{m})()
+	p, f := startMocksAndProxy(t, []mock{m})
+	defer f()
 
 	sendRequestExpectResponse(t, requestResponse{
 		req: request{
 			method: http.MethodPost,
-			url:    "http://localhost:23443/prefixed/test",
+			url:    proxyURL(p, "prefixed/test"),
 			body:   http.NoBody,
 		},
 		res: response{

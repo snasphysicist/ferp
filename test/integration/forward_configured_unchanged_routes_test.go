@@ -11,10 +11,11 @@ func TestForwardsOnConfiguredExactRouteAndMethod(t *testing.T) {
 		{path: "/test", method: http.MethodGet, rg: setResponse(200, content)},
 	}}
 
-	defer startMocksAndProxy(t, []mock{m})()
+	p, f := startMocksAndProxy(t, []mock{m})
+	defer f()
 
 	sendRequestExpectResponse(t, requestResponse{
-		req: request{method: http.MethodGet, url: "http://localhost:23443/test", body: http.NoBody},
+		req: request{method: http.MethodGet, url: proxyURL(p, "test"), body: http.NoBody},
 		res: response{code: http.StatusOK, content: content},
 	})
 }
@@ -30,14 +31,15 @@ func TestForwardsPathsToCorrespondingDownstreams(t *testing.T) {
 		{path: "/other/test", method: http.MethodGet, rg: setResponse(200, content2)},
 	}}
 
-	defer startMocksAndProxy(t, []mock{m1, m2})()
+	p, f := startMocksAndProxy(t, []mock{m1, m2})
+	defer f()
 
 	sendRequestExpectResponse(t, requestResponse{
-		req: request{method: http.MethodGet, url: "http://localhost:23443/test", body: http.NoBody},
+		req: request{method: http.MethodGet, url: proxyURL(p, "test"), body: http.NoBody},
 		res: response{code: http.StatusOK, content: content1},
 	})
 	sendRequestExpectResponse(t, requestResponse{
-		req: request{method: http.MethodGet, url: "http://localhost:23443/other/test", body: http.NoBody},
+		req: request{method: http.MethodGet, url: proxyURL(p, "other/test"), body: http.NoBody},
 		res: response{code: http.StatusOK, content: content2},
 	})
 }

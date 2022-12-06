@@ -1,7 +1,9 @@
 package integration
 
 import (
+	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -118,12 +120,14 @@ type response struct {
 // startMocksAndProxy starts the provided mocks and the proxy server
 // using the test configuration, bundling all shutdown/cleanup into
 // the returned function, which should be deferred from the test.
-func startMocksAndProxy(t *testing.T, mocks []mock) func() {
+func startMocksAndProxy(t *testing.T, mocks []mock) (uint16, func()) {
 	_, _ = log.Initialise()
 	c, err := configuration.Load(mustFindFile("test.yaml", "."))
 	if err != nil {
 		t.Errorf("Failed to load configuration: %s", err)
 	}
+
+	c.HTTP.Port = randomPort()
 
 	stop := make(chan struct{})
 	shutdowns := make([]func(), 0)
@@ -134,9 +138,19 @@ func startMocksAndProxy(t *testing.T, mocks []mock) func() {
 	}
 
 	go command.Serve(c, stop)
-	return func() {
+	return c.HTTP.Port, func() {
 		for _, s := range shutdowns {
 			s()
 		}
 	}
+}
+
+// randomPort returns a pseudo-random high-numbered port
+func randomPort() uint16 {
+	return uint16(9000 + rand.Int31n(40000))
+}
+
+// proxyURL returns the URL to contact the proxy at the given port and path
+func proxyURL(port uint16, path string) string {
+	return fmt.Sprintf("http://localhost:%d/%s", port, strings.TrimSuffix(path, "/"))
 }

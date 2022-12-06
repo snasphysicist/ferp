@@ -6,10 +6,11 @@ import (
 )
 
 func TestGracefullyFailsWhenDownstreamIsUnavailable(t *testing.T) {
-	startMocksAndProxy(t, []mock{})
+	p, f := startMocksAndProxy(t, []mock{})
+	defer f()
 
 	sendRequestExpectResponse(t, requestResponse{
-		req: request{method: http.MethodGet, url: "http://localhost:23443/test", body: http.NoBody},
+		req: request{method: http.MethodGet, url: proxyURL(p, "test"), body: http.NoBody},
 		res: response{code: http.StatusInternalServerError, content: "500: something went wrong"},
 	})
 }
