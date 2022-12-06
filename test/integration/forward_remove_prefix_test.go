@@ -8,7 +8,7 @@ import (
 func TestForwardsWithPrefixRemovedWhenConfigured(t *testing.T) {
 	content := "Reached a prefixed test route"
 	m := mock{t: t, port: mockPorts()[0], routes: []route{
-		{path: "/test", method: http.MethodPost, code: 200, content: content},
+		{path: "/test", method: http.MethodPost, rg: setResponse(200, content)},
 	}}
 
 	defer startMocksAndProxy(t, []mock{m})()

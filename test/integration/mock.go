@@ -20,11 +20,13 @@ type mock struct {
 
 // route is a route offered by the mock, with the code/content that will be returned from that route
 type route struct {
-	path    string
-	method  string
-	code    int
-	content string
+	path   string
+	method string
+	rg     responseGenerator
 }
+
+// responseGenerator generates a response to a request in the mock
+type responseGenerator func(r *http.Request) (int, string)
 
 // start starts the mock server in a new goroutine, and returns a function
 // which should be deferred from the test to shutdown that server.
@@ -49,7 +51,7 @@ func (m mock) start() func() {
 func (m mock) configureRoutes() *chi.Mux {
 	mux := chi.NewMux()
 	for _, r := range m.routes {
-		hf := m.handler(r.code, r.content)
+		hf := m.handler(r.rg)
 		mux.Method(r.method, r.path, hf)
 	}
 	return mux
@@ -57,8 +59,9 @@ func (m mock) configureRoutes() *chi.Mux {
 
 // handler creates a http.HandlerFunc which will always return a response
 // with the given status code and whose body contains the given content
-func (m mock) handler(code int, content string) http.HandlerFunc {
+func (m mock) handler(rg responseGenerator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		code, content := rg(r)
 		w.WriteHeader(code)
 		_, err := w.Write([]byte(content))
 		if err != nil {
@@ -70,4 +73,9 @@ func (m mock) handler(code int, content string) http.HandlerFunc {
 // mockPorts are the ports on which mocks should be opened
 func mockPorts() []uint16 {
 	return []uint16{34543, 35753}
+}
+
+// setResponse simply returns the provided code and content for the response
+func setResponse(code int, content string) responseGenerator {
+	return func(*http.Request) (int, string) { return code, content }
 }

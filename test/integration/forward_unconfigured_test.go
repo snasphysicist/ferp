@@ -8,8 +8,8 @@ import (
 func TestDoesNotForwardToUnconfiguredPath(t *testing.T) {
 	content := "Reached the test route"
 	m := mock{t: t, port: mockPorts()[0], routes: []route{
-		{path: "/test", method: http.MethodGet, code: 200, content: content},
-		{path: "/teest", method: http.MethodGet, code: 200, content: content},
+		{path: "/test", method: http.MethodGet, rg: setResponse(200, content)},
+		{path: "/teest", method: http.MethodGet, rg: setResponse(200, content)},
 	}}
 
 	defer startMocksAndProxy(t, []mock{m})()
@@ -30,7 +30,7 @@ func TestDoesNotForwardToUnconfiguredPath(t *testing.T) {
 func TestDoesNotForwardToUnconfiguredMethod(t *testing.T) {
 	content := "Reached the test route"
 	m := mock{t: t, port: mockPorts()[0], routes: []route{
-		{path: "/test", method: http.MethodGet, code: 200, content: content},
+		{path: "/test", method: http.MethodGet, rg: setResponse(200, content)},
 	}}
 
 	defer startMocksAndProxy(t, []mock{m})()
