@@ -12,7 +12,7 @@ func populateDownstreams(c Configuration) (Configuration, error) {
 	isi, isErr := findDownstreams(c.Downstreams, c.HTTP.Incoming)
 	c.HTTP.Incoming = isi
 	si, sErr := findDownstreams(c.Downstreams, c.HTTPS.Incoming)
-	c.HTTP.Incoming = si
+	c.HTTPS.Incoming = si
 	return c, joinNonNilErrors([]error{isErr, sErr}, ", ", "%s")
 }
 
