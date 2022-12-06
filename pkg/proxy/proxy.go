@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/snasphysicist/ferp/v2/pkg/log"
@@ -25,7 +26,7 @@ type pathRewriter func(string) string
 // ForwardRequest forwards the incoming request to the configured downstream
 // and writes out the received reponse to the outgoing response
 func (r Remapper) ForwardRequest(w http.ResponseWriter, req *http.Request) {
-	url := r.makeURL(req.URL.Path)
+	url := attachQueryParameters(r.makeURL(req.URL.Path), req.URL.Query())
 	dReq, err := http.NewRequest(req.Method, url, req.Body)
 	if err != nil {
 		log.Errorf("Failed to construct downstream request: %s", err)
@@ -69,6 +70,16 @@ func (r Remapper) makeURL(incoming string) string {
 	url := fmt.Sprintf("%s://%s:%d/%s%s", r.Protocol, r.Host, r.Port, base, suffix)
 	log.Infof("Had suffix, returning %s (base '%s', suffix '%s')", url, base, suffix)
 	return url
+}
+
+// attachQueryParameters forwards the query parameters from the request
+// by adding them to the base, if there are any
+func attachQueryParameters(base string, v url.Values) string {
+	q := v.Encode()
+	if q == "" {
+		return base
+	}
+	return fmt.Sprintf("%s?%s", base, q)
 }
 
 // sendInternal sends an error response when something goes wrong in the proxy itself
