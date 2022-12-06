@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -78,4 +79,16 @@ func mockPorts() []uint16 {
 // setResponse simply returns the provided code and content for the response
 func setResponse(code int, content string) responseGenerator {
 	return func(*http.Request) (int, string) { return code, content }
+}
+
+// echoQueryParameters returns a 200 and writes
+// the provided query parameters into the body as JSON
+func echoQueryParameters() responseGenerator {
+	return func(r *http.Request) (int, string) {
+		b, err := json.Marshal(r.URL.Query())
+		if err != nil {
+			panic(err)
+		}
+		return 200, string(b)
+	}
 }
