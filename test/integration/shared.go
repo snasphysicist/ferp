@@ -69,7 +69,7 @@ func doUntilResponse(r *http.Request, retries uint, backoff time.Duration) *http
 		time.Sleep(backoff)
 		backoff = backoff * 2
 	}
-	panic("no sucessful request after retries")
+	panic(fmt.Sprintf("no successful request to '%s' after retries", r.URL.String()))
 }
 
 // sendRequestExpectResponse sends a request with the given method, url and body
