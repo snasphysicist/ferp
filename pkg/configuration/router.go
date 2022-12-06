@@ -11,8 +11,11 @@ func populateMethodRouters(c Configuration) (Configuration, error) {
 	c.HTTP.Incoming = ii
 	ird, irdErr := populateMethodRoutersForRedirects(c.HTTP.Redirects)
 	c.HTTP.Redirects = ird
-	// TODO: HTTPS
-	err := joinNonNilErrors([]error{iiErr, irdErr}, ", ", "invalid methods: %s")
+	si, siErr := populateMethodRoutersForIncomings(c.HTTPS.Incoming)
+	c.HTTPS.Incoming = si
+	srd, srdErr := populateMethodRoutersForRedirects(c.HTTPS.Redirects)
+	c.HTTP.Redirects = srd
+	err := joinNonNilErrors([]error{iiErr, irdErr, siErr, srdErr}, ", ", "invalid methods: %s")
 	return c, err
 }
 

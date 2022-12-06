@@ -9,10 +9,11 @@ import (
 // populateDownstreams finds downstreams for all incomings in the configuration,
 // returning an error if some cannot be found
 func populateDownstreams(c Configuration) (Configuration, error) {
-	isi, err := findDownstreams(c.Downstreams, c.HTTP.Incoming)
+	isi, isErr := findDownstreams(c.Downstreams, c.HTTP.Incoming)
 	c.HTTP.Incoming = isi
-	// TODO: HTTPS
-	return c, joinNonNilErrors([]error{err}, ", ", "%s")
+	si, sErr := findDownstreams(c.Downstreams, c.HTTPS.Incoming)
+	c.HTTP.Incoming = si
+	return c, joinNonNilErrors([]error{isErr, sErr}, ", ", "%s")
 }
 
 // findDownstreams finds downstreams for all provided incomings, returning
