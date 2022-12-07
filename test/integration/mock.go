@@ -95,12 +95,12 @@ func echoQueryParameters() responseGenerator {
 
 // echoHeaders returns a 200 and writes
 // the provided query parameters into the body as JSON
-// func echoHeaders() responseGenerator {
-// 	return func(r *http.Request) (int, string) {
-// 		b, err := json.Marshal(r.Header)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		return 200, string(b)
-// 	}
-// }
+func echoHeaders() responseGenerator {
+	return func(r *http.Request) (int, string) {
+		b, err := json.Marshal(r.Header)
+		if err != nil {
+			panic(err)
+		}
+		return 200, string(b)
+	}
+}
