@@ -53,7 +53,6 @@ func (r Remapper) ForwardRequest(w http.ResponseWriter, req *http.Request) {
 
 // makeURL contructs the URL to which to make the downstream request
 // from the configured host/etc.. plus the passed incoming path
-// TODO: check ? query parameters and # fragments
 func (r Remapper) makeURL(incoming string) string {
 	suffix := r.Mapper(incoming)
 	base := strings.TrimLeft(r.Base, "/")
