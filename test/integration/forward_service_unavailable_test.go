@@ -10,7 +10,14 @@ func TestGracefullyFailsWhenDownstreamIsUnavailable(t *testing.T) {
 	defer f()
 
 	sendRequestExpectResponse(t, requestResponse{
-		req: request{method: http.MethodGet, url: proxyURL(p, "test"), body: http.NoBody},
-		res: response{code: http.StatusInternalServerError, content: "500: something went wrong"},
+		req: request{
+			method: http.MethodGet,
+			url:    proxyURL(p, "test"),
+			body:   http.NoBody,
+		},
+		res: response{
+			code:    http.StatusInternalServerError,
+			content: stringMatch{expect: "500: something went wrong"},
+		},
 	})
 }

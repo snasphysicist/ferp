@@ -23,7 +23,7 @@ func TestDoesNotForwardToUnconfiguredPath(t *testing.T) {
 		},
 		res: response{
 			code:    http.StatusNotFound,
-			content: "404 page not found\n",
+			content: stringMatch{expect: "404 page not found\n"},
 		},
 	})
 }
@@ -45,7 +45,7 @@ func TestDoesNotForwardToUnconfiguredMethod(t *testing.T) {
 		},
 		res: response{
 			code:    http.StatusMethodNotAllowed,
-			content: "",
+			content: stringMatch{expect: ""},
 		},
 	})
 }

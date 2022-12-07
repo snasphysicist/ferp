@@ -82,6 +82,11 @@ func sendRequestExpectResponse(t *testing.T, rr requestResponse) {
 		t.Errorf("Failed to construct request: %s", err)
 		return
 	}
+	for h, vs := range rr.req.headers {
+		for _, v := range vs {
+			req.Header.Add(h, v)
+		}
+	}
 	res := doUntilResponse(req, 11, time.Millisecond)
 	if res.StatusCode != rr.res.code {
 		t.Errorf("Request had status %d, expected %d", res.StatusCode, rr.res.code)
@@ -92,10 +97,7 @@ func sendRequestExpectResponse(t *testing.T, rr requestResponse) {
 		t.Errorf("Failed to read response body: %s", err)
 		return
 	}
-	if string(b) != rr.res.content {
-		t.Errorf("Response content does not match expected: '%s' != '%s'",
-			string(b), rr.res.content)
-	}
+	rr.res.content.Check(t, b)
 }
 
 // requestResponse stores a request to be sent during a test and the response expected
@@ -106,15 +108,35 @@ type requestResponse struct {
 
 // request represents a request to be send during a test
 type request struct {
-	method string
-	url    string
-	body   io.ReadCloser
+	method  string
+	url     string
+	body    io.ReadCloser
+	headers http.Header
 }
 
 // response represents the expected state of a response to be returned during a test
 type response struct {
 	code    int
-	content string
+	content contentMatcher
+}
+
+// contentMatcher checks the (body) content of a response
+// and fails the test if it is not as expected
+type contentMatcher interface {
+	Check(t *testing.T, b []byte)
+}
+
+// stringMatch fails the test if the body content
+// does not equal the provided string
+type stringMatch struct {
+	expect string
+}
+
+// Check implements contentMatcher for stringMatch
+func (m stringMatch) Check(t *testing.T, b []byte) {
+	if string(b) != m.expect {
+		t.Errorf("Expected '%s' got '%s'", m.expect, string(b))
+	}
 }
 
 // startMocksAndProxy starts the provided mocks and the proxy server

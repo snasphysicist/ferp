@@ -30,7 +30,7 @@ func TestForwardsQueryParametersOnDownstreamRequest(t *testing.T) {
 		},
 		res: response{
 			code:    http.StatusOK,
-			content: string(expect),
+			content: stringMatch{expect: string(expect)},
 		},
 	})
 }
