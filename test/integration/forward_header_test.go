@@ -35,6 +35,36 @@ func TestCopiesHeadersToDownstreamRequest(t *testing.T) {
 
 }
 
+func TestDoesNotCopyHeadersThatProxiesShouldDropToDownstreamRequest(t *testing.T) {
+	m := mock{t: t, port: mockPorts()[0], routes: []route{
+		{path: "/test", method: http.MethodGet, rg: echoHeaders()},
+	}}
+
+	p, f := startMocksAndProxy(t, []mock{m})
+	defer f()
+
+	headers := http.Header{
+		"Connection":     []string{"bar"},
+		"Keep-Alive":     []string{"rab"},
+		"Content-Length": []string{"1025"},
+		"Close":          []string{"foo"},
+	}
+
+	sendRequestExpectResponse(t, requestResponse{
+		req: request{
+			method:  http.MethodGet,
+			url:     proxyURL(p, "test"),
+			body:    http.NoBody,
+			headers: headers,
+		},
+		res: response{
+			code:    http.StatusOK,
+			content: ensureDoesNotContainJSONSerialisedHeaders{expect: headers},
+		},
+	})
+
+}
+
 // ensureContainsJSONSerialisedHeaders fails the test if the body of the response
 // does not contain serialised HTTP headers, and if those headers do not
 // contain all the key value pairs provided
@@ -57,6 +87,28 @@ func (m ensureContainsJSONSerialisedHeaders) Check(t *testing.T, b []byte) {
 		if !reflect.DeepEqual(vs, actual[k]) {
 			t.Errorf("Header value for key '%s' got '%+v' expected '%+v'",
 				k, actual[k], vs)
+		}
+	}
+}
+
+// ensureDoesNotContainJSONSerialisedHeaders fails the test if
+// the body of the response does not contain serialised HTTP headers,
+// and if those headers do contain any of the keys provided
+type ensureDoesNotContainJSONSerialisedHeaders struct {
+	expect http.Header
+}
+
+// Check implements contentMatcher for ensureContainsJSONSerialisedHeaders
+func (m ensureDoesNotContainJSONSerialisedHeaders) Check(t *testing.T, b []byte) {
+	var actual http.Header
+	err := json.Unmarshal(b, &actual)
+	if err != nil {
+		t.Errorf("Failed to deserialise body to headers: %s", err)
+		return
+	}
+	for k := range m.expect {
+		if _, ok := actual[k]; ok {
+			t.Errorf("Header key '%s' present in headers in body", k)
 		}
 	}
 }
