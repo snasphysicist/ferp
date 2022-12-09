@@ -41,6 +41,7 @@ func (r Remapper) ForwardRequest(w http.ResponseWriter, req *http.Request) {
 		sendInternalErrorResponse(w)
 		return
 	}
+	defer func() { _ = res.Body.Close() }()
 	transferResponseHeaders(res, w)
 	w.WriteHeader(res.StatusCode)
 	_, err = io.Copy(w, res.Body)
