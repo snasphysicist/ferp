@@ -5,17 +5,20 @@ import (
 	"github.com/snasphysicist/ferp/v2/pkg/configuration"
 	"github.com/snasphysicist/ferp/v2/pkg/log"
 	"github.com/snasphysicist/ferp/v2/pkg/proxy"
+	"github.com/snasphysicist/ferp/v2/pkg/url"
 )
 
 // Configure sets up on the router all proxy routes defined in the incomings
 func Configure(r *chi.Mux, incs []configuration.Incoming) {
 	for _, i := range incs {
 		rm := proxy.Remapper{
-			Protocol: i.Downstream.Protocol,
-			Host:     i.Downstream.Host,
-			Port:     i.Downstream.Port,
-			Base:     i.Downstream.Base,
-			Mapper:   i.Downstream.Mapper.Map,
+			BaseURL: url.BaseURL{
+				Protocol: i.Downstream.Protocol,
+				Host:     i.Downstream.Host,
+				Port:     i.Downstream.Port,
+				Path:     i.Downstream.Base,
+			},
+			Mapper: i.Downstream.Mapper.Map,
 		}
 		log.Infof("For Incoming %#v constructed Remapper %#v ", i, rm)
 		for _, mr := range i.MethodRouters {

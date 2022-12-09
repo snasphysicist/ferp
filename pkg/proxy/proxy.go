@@ -1,33 +1,24 @@
 package proxy
 
 import (
-	"fmt"
 	"io"
 	"net/http"
-	"net/url"
-	"strings"
 
 	"github.com/snasphysicist/ferp/v2/pkg/functional"
 	"github.com/snasphysicist/ferp/v2/pkg/log"
+	"github.com/snasphysicist/ferp/v2/pkg/url"
 )
 
 // Remapper constructs the downstream URL from the incoming path
 type Remapper struct {
-	Protocol string
-	Host     string
-	Port     uint16
-	Base     string
-	Mapper   pathRewriter
+	url.BaseURL
+	Mapper url.PathRewriter
 }
-
-// pathRewriter converts the incoming path (at which this proxy received the request)
-// to the downstream path (where the request will be made on the proxied service)
-type pathRewriter func(string) string
 
 // ForwardRequest forwards the incoming request to the configured downstream
 // and writes out the received reponse to the outgoing response
 func (r Remapper) ForwardRequest(w http.ResponseWriter, req *http.Request) {
-	url := attachQueryParameters(r.makeURL(req.URL.Path), req.URL.Query())
+	url := url.Rewrite(*req.URL, r.BaseURL, r.Mapper)
 	dReq, err := http.NewRequest(req.Method, url, req.Body)
 	if err != nil {
 		log.Errorf("Failed to construct downstream request: %s", err)
@@ -51,36 +42,6 @@ func (r Remapper) ForwardRequest(w http.ResponseWriter, req *http.Request) {
 	}
 	log.Infof("Successfully proxied request from %s to %#v",
 		req.URL.String(), dReq.URL.String())
-}
-
-// makeURL contructs the URL to which to make the downstream request
-// from the configured host/etc.. plus the passed incoming path
-func (r Remapper) makeURL(incoming string) string {
-	suffix := r.Mapper(incoming)
-	base := strings.TrimLeft(r.Base, "/")
-	if suffix == "" {
-		url := fmt.Sprintf("%s://%s:%d/%s", r.Protocol, r.Host, r.Port, base)
-		log.Infof("No suffix, returning %s (base '%s')", url, base)
-		return url
-	}
-	suffix = strings.TrimLeft(suffix, "/")
-	base = strings.TrimRight(base, "/")
-	if base != "" {
-		base = fmt.Sprintf("%s/", base)
-	}
-	url := fmt.Sprintf("%s://%s:%d/%s%s", r.Protocol, r.Host, r.Port, base, suffix)
-	log.Infof("Had suffix, returning %s (base '%s', suffix '%s')", url, base, suffix)
-	return url
-}
-
-// attachQueryParameters forwards the query parameters from the request
-// by adding them to the base, if there are any
-func attachQueryParameters(base string, v url.Values) string {
-	q := v.Encode()
-	if q == "" {
-		return base
-	}
-	return fmt.Sprintf("%s?%s", base, q)
 }
 
 // sendInternal sends an error response when something goes wrong in the proxy itself
