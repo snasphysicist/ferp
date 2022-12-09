@@ -11,7 +11,7 @@ import (
 // Configure sets up on the router all proxy routes defined in the incomings
 func Configure(r *chi.Mux, incs []configuration.Incoming) {
 	for _, i := range incs {
-		rm := proxy.Remapper{
+		rm := proxy.Proxy{
 			BaseURL: url.BaseURL{
 				Protocol: i.Downstream.Protocol,
 				Host:     i.Downstream.Host,

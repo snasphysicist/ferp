@@ -9,16 +9,16 @@ import (
 	"github.com/snasphysicist/ferp/v2/pkg/url"
 )
 
-// Remapper constructs the downstream URL from the incoming path
-type Remapper struct {
+// Proxy implements a HTTP handler to proxy (forward) requests
+type Proxy struct {
 	url.BaseURL
 	Mapper url.PathRewriter
 }
 
 // ForwardRequest forwards the incoming request to the configured downstream
 // and writes out the received reponse to the outgoing response
-func (r Remapper) ForwardRequest(w http.ResponseWriter, req *http.Request) {
-	url := url.Rewrite(*req.URL, r.BaseURL, r.Mapper)
+func (p Proxy) ForwardRequest(w http.ResponseWriter, req *http.Request) {
+	url := url.Rewrite(*req.URL, p.BaseURL, p.Mapper)
 	dReq, err := http.NewRequest(req.Method, url, req.Body)
 	if err != nil {
 		log.Errorf("Failed to construct downstream request: %s", err)
