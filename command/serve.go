@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/snasphysicist/ferp/v2/pkg/configuration"
 	"github.com/snasphysicist/ferp/v2/pkg/log"
@@ -75,7 +76,7 @@ func startSecure(c configuration.Configuration, shutdown <-chan struct{}) {
 // shutDownOnSignal closes the shutdown channel if any OS signal or signal on stop is received
 func shutDownOnSignalOrStop(shutdown chan<- struct{}, stop <-chan struct{}) {
 	s := make(chan os.Signal, 1)
-	signal.Notify(s)
+	signal.Notify(s, os.Interrupt, syscall.SIGHUP, syscall.SIGINT)
 	select {
 	case <-s:
 	case <-stop:
