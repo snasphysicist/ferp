@@ -78,8 +78,10 @@ func shutDownOnSignalOrStop(shutdown chan<- struct{}, stop <-chan struct{}) {
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, os.Interrupt, syscall.SIGHUP, syscall.SIGINT)
 	select {
-	case <-s:
+	case sgn := <-s:
+		log.Infof("Received system shutdown signal %v", sgn)
 	case <-stop:
+		log.Infof("Received internal shutdown signal")
 	}
 	close(shutdown)
 }
