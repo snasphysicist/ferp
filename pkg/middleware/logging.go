@@ -26,10 +26,10 @@ func logging(next http.Handler) http.Handler {
 // logRequest logs some information about the request (method, url, timing, ...)
 func logRequest(w http.ResponseWriter, r *http.Request, next http.Handler) {
 	start := time.Now()
-	log.Infof("%s request to %s", r.Method, r.URL.String())
+	log.L().Infof("%s request to %s", r.Method, r.URL.String())
 	rr := wrap(w)
 	next.ServeHTTP(&rr, r)
-	log.Infof("Responded %d, wrote %d, took %s", rr.code, rr.written, time.Since(start))
+	log.L().Infof("Responded %d, wrote %d, took %s", rr.code, rr.written, time.Since(start))
 }
 
 // responseRecorder records some properties of the response which we want to log

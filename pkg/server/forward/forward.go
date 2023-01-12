@@ -20,9 +20,9 @@ func Configure(r *chi.Mux, incs []configuration.Incoming) {
 			},
 			Mapper: i.Downstream.Mapper.Map,
 		}
-		log.Infof("For Incoming %#v constructed Remapper %#v ", i, rm)
+		log.L().Infof("For Incoming %#v constructed Remapper %#v ", i, rm)
 		for _, mr := range i.MethodRouters {
-			log.Infof("Configuring remapper %#v for incoming '%s' with %#v",
+			log.L().Infof("Configuring remapper %#v for incoming '%s' with %#v",
 				rm, i.Path, mr)
 			mr.Route(r, i.Path, rm.ForwardRequest)
 		}

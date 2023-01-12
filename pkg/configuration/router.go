@@ -34,7 +34,7 @@ func populateMethodRoutersForIncomings(is []Incoming) ([]Incoming, error) {
 			Target:        i.Target,
 			Downstream:    i.Downstream,
 		})
-		log.Infof("For %+v, method routers %#v", i, mrs)
+		log.L().Infof("For %+v, method routers %#v", i, mrs)
 	}
 	err := joinNonNilErrors(errs, ", ", "invalid methods: %s")
 	return iswr, err
@@ -54,7 +54,7 @@ func populateMethodRoutersForRedirects(rds []Redirect) ([]Redirect, error) {
 			Methods:       rd.Methods,
 			MethodRouters: mrs,
 		})
-		log.Infof("For %+v, method routers %#v", rd, mrs)
+		log.L().Infof("For %+v, method routers %#v", rd, mrs)
 	}
 	err := joinNonNilErrors(errs, ", ", "invalid methods: %s")
 	return rdswr, err

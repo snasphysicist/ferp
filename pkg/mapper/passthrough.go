@@ -11,7 +11,7 @@ type Passthrough struct{}
 
 // Map implements pathRewriter for Passthrough
 func (Passthrough) Map(from string) string {
-	log.Infof("Rewriting %s to %s", from, from)
+	log.L().Infof("Rewriting %s to %s", from, from)
 	return from
 }
 

@@ -21,14 +21,14 @@ func (p Proxy) ForwardRequest(w http.ResponseWriter, req *http.Request) {
 	url := url.Rewrite(*req.URL, p.BaseURL, p.Mapper)
 	dReq, err := http.NewRequest(req.Method, url, req.Body)
 	if err != nil {
-		log.Errorf("Failed to construct downstream request: %s", err)
+		log.L().Errorf("Failed to construct downstream request: %s", err)
 		sendInternalErrorResponse(w)
 		return
 	}
 	transferRequestHeaders(req, dReq)
 	res, err := (&http.Client{}).Do(dReq)
 	if err != nil {
-		log.Errorf("Failed to send downstream request: %s", err)
+		log.L().Errorf("Failed to send downstream request: %s", err)
 		sendInternalErrorResponse(w)
 		return
 	}
@@ -37,10 +37,10 @@ func (p Proxy) ForwardRequest(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(res.StatusCode)
 	_, err = io.Copy(w, res.Body)
 	if err != nil {
-		log.Errorf("Failed to forward response body: %s", err)
+		log.L().Errorf("Failed to forward response body: %s", err)
 		return
 	}
-	log.Infof("Successfully proxied request from %s to %#v",
+	log.L().Infof("Successfully proxied request from %s to %#v",
 		req.URL.String(), dReq.URL.String())
 }
 
@@ -49,7 +49,7 @@ func sendInternalErrorResponse(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)
 	_, err := w.Write([]byte(internalErrorMessage))
 	if err != nil {
-		log.Errorf("Failed to write error response body: %s", err)
+		log.L().Errorf("Failed to write error response body: %s", err)
 	}
 }
 

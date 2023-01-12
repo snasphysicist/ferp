@@ -13,7 +13,7 @@ func Configure(r *chi.Mux, rds []configuration.Redirect) {
 	for _, rd := range rds {
 		for _, mr := range rd.MethodRouters {
 			mr.Route(r, rd.From, redirector(rd.To))
-			log.Infof("Configuring redirect from '%s' to '%s' with %#v", rd.From, rd.To, mr)
+			log.L().Infof("Configuring redirect from '%s' to '%s' with %#v", rd.From, rd.To, mr)
 		}
 	}
 }

@@ -35,7 +35,7 @@ func initialiseLogging() func() {
 func loadConfiguration(path *string, c *configuration.Configuration) {
 	cl, err := configuration.Load(*path)
 	if err != nil {
-		log.Errorf("Failed to load configuration: %s", err)
+		log.L().Errorf("Failed to load configuration: %s", err)
 		panic(err)
 	}
 	*c = cl

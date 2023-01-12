@@ -18,17 +18,15 @@ func Initialise() (func(), error) {
 	return func() { _ = l.Sync() }, nil
 }
 
-// Errorf logs an error level message
-func Errorf(t string, args ...interface{}) {
-	logger.Errorf(t, args...)
+// L provides safe access to the global logger
+func L() Logger {
+	return logger
 }
 
-// Infof logs an information level message
-func Infof(t string, args ...interface{}) {
-	logger.Infof(t, args...)
-}
-
-// Debugf logs a debug level message
-func Debugf(t string, args ...interface{}) {
-	logger.Debugf(t, args...)
+// Logger is returned from this package instead of the full logger
+// to limit the operations client code is allowed to take on it
+type Logger interface {
+	Errorf(string, ...interface{})
+	Infof(string, ...interface{})
+	Debugf(string, ...interface{})
 }

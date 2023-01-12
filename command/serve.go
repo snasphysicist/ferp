@@ -36,16 +36,16 @@ func Serve(c configuration.Configuration, stop chan struct{}) {
 // startInsecure starts the HTTP server according to its configuration, if needed
 func startInsecure(c configuration.Configuration, shutdown <-chan struct{}) {
 	if len(c.HTTP.Incoming) == 0 && len(c.HTTP.Redirects) == 0 {
-		log.Infof("No HTTP routes or redirects configured, not starting HTTP")
+		log.L().Infof("No HTTP routes or redirects configured, not starting HTTP")
 		return
 	}
 
 	insecure := server.HTTP(c.HTTP)
 	go func() {
-		log.Infof("Starting http server on %s", insecure.Addr)
+		log.L().Infof("Starting http server on %s", insecure.Addr)
 		err := insecure.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			log.Errorf("http server stopped with %s", err)
+			log.L().Errorf("http server stopped with %s", err)
 			panic(err)
 		}
 	}()
@@ -55,7 +55,7 @@ func startInsecure(c configuration.Configuration, shutdown <-chan struct{}) {
 // startSecure starts the HTTPS server according to its configuration, if needed
 func startSecure(c configuration.Configuration, shutdown <-chan struct{}) {
 	if len(c.HTTPS.Incoming) == 0 && len(c.HTTPS.Redirects) == 0 {
-		log.Infof("No HTTPS routes or redirects configured, not starting HTTPS")
+		log.L().Infof("No HTTPS routes or redirects configured, not starting HTTPS")
 		return
 	}
 
@@ -63,10 +63,10 @@ func startSecure(c configuration.Configuration, shutdown <-chan struct{}) {
 	ensureExists(c.HTTPS.KeyFile)
 	secure := server.HTTPS(c.HTTPS)
 	go func() {
-		log.Infof("Starting https server on %s", secure.Addr)
+		log.L().Infof("Starting https server on %s", secure.Addr)
 		err := secure.ListenAndServeTLS(c.HTTPS.CertFile, c.HTTPS.KeyFile)
 		if err != nil && err != http.ErrServerClosed {
-			log.Errorf("https server stopped with %s", err)
+			log.L().Errorf("https server stopped with %s", err)
 			panic(err)
 		}
 	}()
@@ -79,9 +79,9 @@ func shutDownOnSignalOrStop(shutdown chan<- struct{}, stop <-chan struct{}) {
 	signal.Notify(s, os.Interrupt, syscall.SIGHUP, syscall.SIGINT)
 	select {
 	case sgn := <-s:
-		log.Infof("Received system shutdown signal %v", sgn)
+		log.L().Infof("Received system shutdown signal %v", sgn)
 	case <-stop:
-		log.Infof("Received internal shutdown signal")
+		log.L().Infof("Received internal shutdown signal")
 	}
 	close(shutdown)
 }
@@ -91,7 +91,7 @@ func shutDownOnSignalOrStop(shutdown chan<- struct{}, stop <-chan struct{}) {
 func shutDownGracefully(shutdown <-chan struct{}, s shutdowner) {
 	<-shutdown
 	if err := s.Shutdown(context.Background()); err != nil {
-		log.Errorf("Failed to shut down %#v: %s", s, err)
+		log.L().Errorf("Failed to shut down %#v: %s", s, err)
 	}
 }
 
@@ -105,7 +105,7 @@ func ensureExists(path string) {
 	f, err := os.Open(path)
 	defer closeLoggingErrors(f)
 	if err != nil {
-		log.Errorf("Failed to open %s", path)
+		log.L().Errorf("Failed to open %s", path)
 		panic(err)
 	}
 }
@@ -113,6 +113,6 @@ func ensureExists(path string) {
 // closeLoggingErrors closes a closeable and logs any errors encountered on close
 func closeLoggingErrors(c io.Closer) {
 	if err := c.Close(); err != nil {
-		log.Errorf("Failed to close %#v: %s", c, err)
+		log.L().Errorf("Failed to close %#v: %s", c, err)
 	}
 }
