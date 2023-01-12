@@ -23,6 +23,11 @@ downstream:
       prefix: "/prefixed"
 http:
   port: 23443
+  redirects:
+    - from: "/redirect-me"
+      to: "/you-are-redirected"
+      methods:
+        - "GET"
   incoming:
     - path: "/test"
       methods:
