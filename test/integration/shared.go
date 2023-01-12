@@ -62,7 +62,7 @@ func doUntilResponse(r *http.Request, retries uint, backoff time.Duration) *http
 	var i uint
 	for i < retries {
 		i++
-		res, err := (&http.Client{}).Do(r)
+		res, err := (&http.Client{CheckRedirect: dontFollow}).Do(r)
 		if err == nil {
 			return res
 		}
@@ -70,6 +70,11 @@ func doUntilResponse(r *http.Request, retries uint, backoff time.Duration) *http
 		backoff = backoff * 2
 	}
 	panic(fmt.Sprintf("no successful request to '%s' after retries", r.URL.String()))
+}
+
+// dontFollow is a "CheckRedirect" implementation that prevents redirects from being followed
+func dontFollow(req *http.Request, via []*http.Request) error {
+	return http.ErrUseLastResponse
 }
 
 // sendRequestExpectResponse sends a request with the given method, url and body
