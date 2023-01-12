@@ -30,7 +30,7 @@ type pathMapper interface {
 // HTTP holds configuration for the HTTP proxy server
 type HTTP struct {
 	Port      uint16     `config:"port"`
-	Redirects []Redirect `config:"redirect"`
+	Redirects []Redirect `config:"redirects"`
 	Incoming  []Incoming `config:"incoming"`
 }
 
