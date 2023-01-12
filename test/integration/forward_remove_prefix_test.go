@@ -23,6 +23,7 @@ func TestForwardsWithPrefixRemovedWhenConfigured(t *testing.T) {
 		res: response{
 			code:    http.StatusOK,
 			content: stringMatch{expect: content},
+			headers: checkNoHeaders{},
 		},
 	})
 }

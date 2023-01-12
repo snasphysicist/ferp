@@ -18,6 +18,7 @@ func TestGracefullyFailsWhenDownstreamIsUnavailable(t *testing.T) {
 		res: response{
 			code:    http.StatusInternalServerError,
 			content: stringMatch{expect: "500: something went wrong"},
+			headers: checkNoHeaders{},
 		},
 	})
 }

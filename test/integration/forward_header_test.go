@@ -30,6 +30,7 @@ func TestCopiesHeadersToDownstreamRequest(t *testing.T) {
 		res: response{
 			code:    http.StatusOK,
 			content: ensureContainsJSONSerialisedHeaders{expect: headers},
+			headers: checkNoHeaders{},
 		},
 	})
 
@@ -60,6 +61,7 @@ func TestDoesNotCopyHeadersThatProxiesShouldDropToDownstreamRequest(t *testing.T
 		res: response{
 			code:    http.StatusOK,
 			content: ensureDoesNotContainJSONSerialisedHeaders{expect: headers},
+			headers: checkNoHeaders{},
 		},
 	})
 

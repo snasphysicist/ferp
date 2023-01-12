@@ -31,6 +31,7 @@ func TestForwardsQueryParametersOnDownstreamRequest(t *testing.T) {
 		res: response{
 			code:    http.StatusOK,
 			content: stringMatch{expect: string(expect)},
+			headers: checkNoHeaders{},
 		},
 	})
 }

@@ -24,6 +24,7 @@ func TestDoesNotForwardToUnconfiguredPath(t *testing.T) {
 		res: response{
 			code:    http.StatusNotFound,
 			content: stringMatch{expect: "404 page not found\n"},
+			headers: checkNoHeaders{},
 		},
 	})
 }
@@ -46,6 +47,7 @@ func TestDoesNotForwardToUnconfiguredMethod(t *testing.T) {
 		res: response{
 			code:    http.StatusMethodNotAllowed,
 			content: stringMatch{expect: ""},
+			headers: checkNoHeaders{},
 		},
 	})
 }

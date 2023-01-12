@@ -103,6 +103,7 @@ func sendRequestExpectResponse(t *testing.T, rr requestResponse) {
 		return
 	}
 	rr.res.content.Check(t, b)
+	rr.res.headers.Check(t, res.Header)
 }
 
 // requestResponse stores a request to be sent during a test and the response expected
@@ -123,6 +124,7 @@ type request struct {
 type response struct {
 	code    int
 	content contentMatcher
+	headers headerMatcher
 }
 
 // contentMatcher checks the (body) content of a response
@@ -143,6 +145,18 @@ func (m stringMatch) Check(t *testing.T, b []byte) {
 		t.Errorf("Expected '%s' got '%s'", m.expect, string(b))
 	}
 }
+
+// headerMatcher checks response headers
+// and fails the test if they are not as expected
+type headerMatcher interface {
+	Check(*testing.T, http.Header)
+}
+
+// checkNoHeaders doesnis a headerMatcher implementation that never fails the test
+type checkNoHeaders struct{}
+
+// Check implements headerMatcher for checkNoHeaders, see struct for behaviour
+func (checkNoHeaders) Check(*testing.T, http.Header) {}
 
 // startMocksAndProxy starts the provided mocks and the proxy server
 // using the test configuration, bundling all shutdown/cleanup into

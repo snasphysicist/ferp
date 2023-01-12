@@ -18,6 +18,7 @@ func TestRedirectStatusReturnedOnConfiguredRedirectPath(t *testing.T) {
 		res: response{
 			code:    http.StatusFound,
 			content: checkNothing{},
+			headers: checkNoHeaders{},
 		},
 	})
 }

@@ -16,7 +16,7 @@ func TestForwardsOnConfiguredExactRouteAndMethod(t *testing.T) {
 
 	sendRequestExpectResponse(t, requestResponse{
 		req: request{method: http.MethodGet, url: proxyURL(p, "test"), body: http.NoBody},
-		res: response{code: http.StatusOK, content: stringMatch{expect: content}},
+		res: response{code: http.StatusOK, content: stringMatch{expect: content}, headers: checkNoHeaders{}},
 	})
 }
 
@@ -36,10 +36,10 @@ func TestForwardsPathsToCorrespondingDownstreams(t *testing.T) {
 
 	sendRequestExpectResponse(t, requestResponse{
 		req: request{method: http.MethodGet, url: proxyURL(p, "test"), body: http.NoBody},
-		res: response{code: http.StatusOK, content: stringMatch{expect: content1}},
+		res: response{code: http.StatusOK, content: stringMatch{expect: content1}, headers: checkNoHeaders{}},
 	})
 	sendRequestExpectResponse(t, requestResponse{
 		req: request{method: http.MethodGet, url: proxyURL(p, "other/test"), body: http.NoBody},
-		res: response{code: http.StatusOK, content: stringMatch{expect: content2}},
+		res: response{code: http.StatusOK, content: stringMatch{expect: content2}, headers: checkNoHeaders{}},
 	})
 }
