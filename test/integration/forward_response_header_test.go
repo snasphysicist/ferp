@@ -43,8 +43,11 @@ func withSetHeaders() responseGenerator {
 	}
 }
 
+// checkContainsSetHeaders fails the test if the response does not contain
+// the headers that should be set on the response from withSetHeaders
 type checkContainsSetHeaders struct{}
 
+// Check implements headerMatcher for checkContainsSetHeaders, see struct for behaviour
 func (checkContainsSetHeaders) Check(t *testing.T, h http.Header) {
 	if _, ok := h["Connection"]; ok {
 		t.Fatalf("Connection header was forwarded in %#v", h)
