@@ -27,7 +27,13 @@ type route struct {
 }
 
 // responseGenerator generates a response to a request in the mock
-type responseGenerator func(r *http.Request) (int, string)
+type responseGenerator func(r *http.Request) responseSpecification
+
+type responseSpecification struct {
+	status  int
+	body    string
+	headers http.Header
+}
 
 // start starts the mock server in a new goroutine, and returns a function
 // which should be deferred from the test to shutdown that server.
@@ -62,9 +68,14 @@ func (m mock) configureRoutes() *chi.Mux {
 // with the given status code and whose body contains the given content
 func (m mock) handler(rg responseGenerator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		code, content := rg(r)
-		w.WriteHeader(code)
-		_, err := w.Write([]byte(content))
+		rs := rg(r)
+		for k, vs := range rs.headers {
+			for _, v := range vs {
+				w.Header().Add(k, v)
+			}
+		}
+		w.WriteHeader(rs.status)
+		_, err := w.Write([]byte(rs.body))
 		if err != nil {
 			m.t.Errorf("Failed to write response content: %s", err)
 		}
@@ -78,29 +89,31 @@ func mockPorts() []uint16 {
 
 // setResponse simply returns the provided code and content for the response
 func setResponse(code int, content string) responseGenerator {
-	return func(*http.Request) (int, string) { return code, content }
+	return func(*http.Request) responseSpecification {
+		return responseSpecification{status: code, body: content, headers: make(http.Header)}
+	}
 }
 
 // echoQueryParameters returns a 200 and writes
 // the provided query parameters into the body as JSON
 func echoQueryParameters() responseGenerator {
-	return func(r *http.Request) (int, string) {
+	return func(r *http.Request) responseSpecification {
 		b, err := json.Marshal(r.URL.Query())
 		if err != nil {
 			panic(err)
 		}
-		return 200, string(b)
+		return responseSpecification{status: 200, body: string(b), headers: make(http.Header)}
 	}
 }
 
 // echoHeaders returns a 200 and writes
 // the provided query parameters into the body as JSON
 func echoHeaders() responseGenerator {
-	return func(r *http.Request) (int, string) {
+	return func(r *http.Request) responseSpecification {
 		b, err := json.Marshal(r.Header)
 		if err != nil {
 			panic(err)
 		}
-		return 200, string(b)
+		return responseSpecification{status: 200, body: string(b), headers: make(http.Header)}
 	}
 }
