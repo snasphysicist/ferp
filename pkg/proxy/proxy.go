@@ -26,7 +26,10 @@ func (p Proxy) ForwardRequest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	transferRequestHeaders(req, dReq)
-	res, err := (&http.Client{}).Do(dReq)
+	c := &http.Client{CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}}
+	res, err := c.Do(dReq)
 	if err != nil {
 		log.L().Errorf("Failed to send downstream request: %s", err)
 		sendInternalErrorResponse(w)
