@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"reflect"
+	"regexp"
 	"testing"
 )
 
@@ -33,7 +34,6 @@ func TestCopiesHeadersToDownstreamRequest(t *testing.T) {
 			headers: checkNoHeaders{},
 		},
 	})
-
 }
 
 func TestDoesNotCopyHeadersThatProxiesShouldDropToDownstreamRequest(t *testing.T) {
@@ -64,7 +64,65 @@ func TestDoesNotCopyHeadersThatProxiesShouldDropToDownstreamRequest(t *testing.T
 			headers: checkNoHeaders{},
 		},
 	})
+}
 
+func TestAddsForwardedHeaderWhenNoneIncoming(t *testing.T) {
+	m := mock{t: t, port: mockPorts()[0], routes: []route{
+		{path: "/test", method: http.MethodGet, rg: echoHeaders()},
+	}}
+
+	p, f := startMocksAndProxy(t, []mock{m})
+	defer f()
+
+	sendRequestExpectResponse(t, requestResponse{
+		req: request{
+			method:  http.MethodGet,
+			url:     proxyURL(p, "test"),
+			body:    http.NoBody,
+			headers: http.Header{},
+		},
+		res: response{
+			code: http.StatusOK,
+			content: ensureJSONSerialisedForwardedHeaderMatching{
+				matching: []string{
+					"^by=ferp;for=127\\.0\\.0\\.1:\\d+;host=localhost:\\d+;proto=HTTP/1\\.1$",
+				},
+			},
+			headers: checkNoHeaders{},
+		},
+	})
+}
+
+func TestAppendsToForwardedHeaderWhenOneIncomingTest(t *testing.T) {
+	m := mock{t: t, port: mockPorts()[0], routes: []route{
+		{path: "/test", method: http.MethodGet, rg: echoHeaders()},
+	}}
+
+	p, f := startMocksAndProxy(t, []mock{m})
+	defer f()
+
+	sendRequestExpectResponse(t, requestResponse{
+		req: request{
+			method: http.MethodGet,
+			url:    proxyURL(p, "test"),
+			body:   http.NoBody,
+			headers: http.Header{
+				"Forwarded": []string{
+					"for=192.0.2.43;proto=https;by=203.0.113.43;host=snas.pw",
+				},
+			},
+		},
+		res: response{
+			code: http.StatusOK,
+			content: ensureJSONSerialisedForwardedHeaderMatching{
+				matching: []string{
+					"^for=192\\.0\\.2\\.43;proto=https;by=203\\.0\\.113\\.43;host=snas\\.pw$",
+					"^by=ferp;for=127\\.0\\.0\\.1:\\d+;host=localhost:\\d+;proto=HTTP/1\\.1$",
+				},
+			},
+			headers: checkNoHeaders{},
+		},
+	})
 }
 
 // ensureContainsJSONSerialisedHeaders fails the test if the body of the response
@@ -111,6 +169,43 @@ func (m ensureDoesNotContainJSONSerialisedHeaders) Check(t *testing.T, b []byte)
 	for k := range m.expect {
 		if _, ok := actual[k]; ok {
 			t.Errorf("Header key '%s' present in headers in body", k)
+		}
+	}
+}
+
+type ensureJSONSerialisedForwardedHeaderMatching struct {
+	matching []string
+}
+
+func (m ensureJSONSerialisedForwardedHeaderMatching) Check(t *testing.T, b []byte) {
+	var actual http.Header
+	err := json.Unmarshal(b, &actual)
+	if err != nil {
+		t.Errorf("Failed to deserialise body to headers: %s", err)
+		return
+	}
+	actualForwarded := actual["Forwarded"]
+	if actualForwarded == nil {
+		t.Error("Forwarded header was nil")
+		return
+	}
+	if len(actualForwarded) != len(m.matching) {
+		t.Errorf(
+			"Forwarded header has %d values, expected %d",
+			len(actualForwarded),
+			len(m.matching),
+		)
+		return
+	}
+	for i, m := range m.matching {
+		re := regexp.MustCompile(m)
+		if !re.MatchString(actualForwarded[i]) {
+			t.Errorf(
+				"Header %d value '%s' did not match regex '%s'",
+				i,
+				actualForwarded[i],
+				m,
+			)
 		}
 	}
 }

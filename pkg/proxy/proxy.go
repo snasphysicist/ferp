@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 
@@ -26,6 +27,7 @@ func (p Proxy) ForwardRequest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	transferRequestHeaders(req, dReq)
+	setForwardedHeader(req, dReq)
 	c := &http.Client{CheckRedirect: func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}}
@@ -62,6 +64,20 @@ func transferRequestHeaders(from *http.Request, to *http.Request) {
 	for k, values := range from.Header {
 		addIfAllowed(to.Header, k, values)
 	}
+}
+
+// setForwardedHeader ensures that there is a forwarded header on the
+// outgoing/downstream request with our forwarding information appended
+func setForwardedHeader(incoming *http.Request, outgoing *http.Request) {
+	outgoing.Header.Add(
+		"Forwarded",
+		fmt.Sprintf(
+			"by=ferp;for=%s;host=%s;proto=%s",
+			incoming.RemoteAddr,
+			incoming.Host,
+			incoming.Proto,
+		),
+	)
 }
 
 // transferRequestHeaders copies all headers from "from" to "to"
