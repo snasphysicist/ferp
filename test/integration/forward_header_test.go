@@ -85,7 +85,7 @@ func TestAddsForwardedHeaderWhenNoneIncoming(t *testing.T) {
 			code: http.StatusOK,
 			content: ensureJSONSerialisedForwardedHeaderMatching{
 				matching: []string{
-					"^by=ferp;for=127\\.0\\.0\\.1:\\d+;host=localhost:\\d+;proto=HTTP/1\\.1$",
+					`^by=ferp;for=(127\.0\.0\.1|\[::1\]):\d+;host=localhost:\d+;proto=HTTP/1\.1$`,
 				},
 			},
 			headers: checkNoHeaders{},
@@ -117,7 +117,7 @@ func TestAppendsToForwardedHeaderWhenOneIncomingTest(t *testing.T) {
 			content: ensureJSONSerialisedForwardedHeaderMatching{
 				matching: []string{
 					"^for=192\\.0\\.2\\.43;proto=https;by=203\\.0\\.113\\.43;host=snas\\.pw$",
-					"^by=ferp;for=127\\.0\\.0\\.1:\\d+;host=localhost:\\d+;proto=HTTP/1\\.1$",
+					`^by=ferp;for=(127\.0\.0\.1|\[::1\]):\d+;host=localhost:\d+;proto=HTTP/1\.1$`,
 				},
 			},
 			headers: checkNoHeaders{},
